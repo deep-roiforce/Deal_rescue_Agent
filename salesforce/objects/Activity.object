@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Task/Event custom fields live on Activity, not on Task.
+
+  Salesforce does not allow custom fields directly on Task or Event: they are
+  created once at the Activity level and surface on both. That is why these are
+  `Activity.Rescue_*__c` in package.xml even though only Task uses them. Seeing
+  them appear on Event is expected, not a mistake.
+-->
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fields>
+        <fullName>Rescue_Draft_Approved__c</fullName>
+        <label>Rescue Draft Approved</label>
+        <description>The rep ticks this to approve the drafted rescue email. A record-triggered Flow watches it and sends the email natively. The orchestrator only ever writes false.</description>
+        <inlineHelpText>Tick to approve and send this drafted email.</inlineHelpText>
+        <type>Checkbox</type>
+        <defaultValue>false</defaultValue>
+    </fields>
+    <fields>
+        <fullName>Rescue_Run_Key__c</fullName>
+        <label>Rescue Run Key</label>
+        <description>Idempotency key, "&lt;opportunity id&gt;-&lt;run date&gt;-&lt;suffix&gt;". External Id so the write-back upserts: re-running a rescue on the same day updates these records instead of creating duplicates.</description>
+        <inlineHelpText>Set by the orchestrator. Do not edit.</inlineHelpText>
+        <type>Text</type>
+        <length>80</length>
+        <required>false</required>
+        <unique>true</unique>
+        <caseSensitive>false</caseSensitive>
+        <externalId>true</externalId>
+    </fields>
+</CustomObject>

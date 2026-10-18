@@ -1,0 +1,80 @@
+[
+  {
+    "id": "006MER0000000001",
+    "name": "Plant 2 Quoting System Replacement",
+    "account_id": "001MER0000000001",
+    "account_name": "Meridian Fabrication",
+    "amount": 240000,
+    "stage": "Proposal",
+    "close_date": "2026-09-30",
+    "created_date": "2026-03-04",
+    "last_activity_date": "2026-09-01",
+    "is_closed": false,
+    "owner_name": "Deep"
+  },
+  {
+    "id": "006FIL0000000002",
+    "name": "Coating Line Scheduling Upgrade",
+    "account_id": "001FIL0000000002",
+    "account_name": "Calumet Coatings",
+    "amount": 95000,
+    "stage": "Qualification",
+    "close_date": "2026-10-15",
+    "created_date": "2026-05-02",
+    "last_activity_date": "2026-08-14",
+    "is_closed": false,
+    "owner_name": "Deep"
+  },
+  {
+    "id": "006FIL0000000003",
+    "name": "Shop Floor Tablet Rollout",
+    "account_id": "001FIL0000000003",
+    "account_name": "Wabash Tool & Die",
+    "amount": 48000,
+    "stage": "Proposal",
+    "close_date": "2026-09-30",
+    "created_date": "2026-04-11",
+    "last_activity_date": "2026-07-29",
+    "is_closed": false,
+    "owner_name": "Deep"
+  },
+  {
+    "id": "006FIL0000000004",
+    "name": "ERP Quoting Integration Phase 2",
+    "account_id": "001FIL0000000004",
+    "account_name": "Northgate Stamping",
+    "amount": 310000,
+    "stage": "Negotiation",
+    "close_date": "2026-11-20",
+    "created_date": "2026-02-19",
+    "last_activity_date": "2026-09-05",
+    "is_closed": false,
+    "owner_name": "Deep"
+  },
+  {
+    "id": "006FIL0000000005",
+    "name": "Maintenance Work Order Portal",
+    "account_id": "001FIL0000000005",
+    "account_name": "Delaware Valley Machining",
+    "amount": 72000,
+    "stage": "Discovery",
+    "close_date": "2026-12-01",
+    "created_date": "2026-06-30",
+    "last_activity_date": "2026-08-25",
+    "is_closed": false,
+    "owner_name": "Deep"
+  },
+  {
+    "id": "006FIL0000000006",
+    "name": "Weld Cell Utilization Dashboard",
+    "account_id": "001FIL0000000006",
+    "account_name": "Kokomo Fabricators",
+    "amount": 26000,
+    "stage": "Qualification",
+    "close_date": "2026-10-31",
+    "created_date": "2026-07-08",
+    "last_activity_date": "2026-09-12",
+    "is_closed": false,
+    "owner_name": "Deep"
+  }
+]

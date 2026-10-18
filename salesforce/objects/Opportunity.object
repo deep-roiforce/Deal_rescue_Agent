@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Partial Opportunity definition: adds four custom fields, touches nothing else.
+  Deploying this cannot affect existing Opportunity configuration.
+
+  API names are mirrored by constants in
+  src/deal_rescue/tools/salesforce_writeback/contract.py — rename in both or
+  neither.
+-->
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fields>
+        <fullName>Rescue_Score__c</fullName>
+        <label>Rescue Score</label>
+        <description>Deal health 0-100 from the Deal Rescue rubric: deterministic base plus a bounded agent adjustment. Lower is more at risk.</description>
+        <inlineHelpText>0-100. Lower means more at risk. See Rescue Signals for why.</inlineHelpText>
+        <type>Number</type>
+        <precision>3</precision>
+        <scale>0</scale>
+        <required>false</required>
+        <unique>false</unique>
+        <externalId>false</externalId>
+    </fields>
+    <fields>
+        <fullName>Rescue_Base_Score__c</fullName>
+        <label>Base Score (native rubric)</label>
+        <description>Deterministic deal health 0-100, computed in the org by DealRescueScore. Covers days silent, close-date pushes, stage regressions and activity slope. Rescue_Score__c is this plus the agent's bounded adjustment.</description>
+        <inlineHelpText>Native rubric score. See Base Signals for the reasons.</inlineHelpText>
+        <type>Number</type>
+        <precision>3</precision>
+        <scale>0</scale>
+        <required>false</required>
+        <unique>false</unique>
+        <externalId>false</externalId>
+    </fields>
+    <fields>
+        <fullName>Rescue_Base_Signals__c</fullName>
+        <label>Base Signals</label>
+        <description>One reason per line for the native rubric score. Every deduction has to say why.</description>
+        <type>LongTextArea</type>
+        <length>4000</length>
+        <visibleLines>6</visibleLines>
+        <required>false</required>
+    </fields>
+    <fields>
+        <fullName>Rescue_Days_Silent__c</fullName>
+        <label>Days Silent</label>
+        <description>Days since the last logged activity, falling back to record age when nothing has ever been logged. Native and always current: no integration required.</description>
+        <inlineHelpText>Days since anyone last touched this deal.</inlineHelpText>
+        <type>Number</type>
+        <precision>18</precision>
+        <scale>0</scale>
+        <formula>IF(
+  ISBLANK(LastActivityDate),
+  TODAY() - DATEVALUE(CreatedDate),
+  TODAY() - LastActivityDate
+)</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    </fields>
+    <fields>
+        <fullName>Rescue_Health_Score__c</fullName>
+        <label>Health Score (native)</label>
+        <description>Always-current deal health from org data alone, 0-100. This is the native tier: it uses only what a formula can reach, so it recalculates continuously without the agent running. Rescue_Score__c is the agent's grounded score, which adds close-date pushes, stage regressions and activity slope from history the formula cannot see.</description>
+        <inlineHelpText>Native health from org data. Rescue Score is the agent's version, with reasons.</inlineHelpText>
+        <type>Number</type>
+        <precision>18</precision>
+        <scale>0</scale>
+        <formula>MAX(0,
+  100
+  - MIN(Rescue_Days_Silent__c, 45)
+  - IF(CloseDate &lt; TODAY(), 15, 0)
+  - IF(TODAY() - DATEVALUE(CreatedDate) &gt; 120, 10, 0)
+)</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    </fields>
+    <fields>
+        <fullName>Rescue_Signals__c</fullName>
+        <label>Rescue Signals</label>
+        <description>One signal per line explaining the score. Deterministic signals first, agent-added signals after. Plain text, newline separated.</description>
+        <inlineHelpText>Why the score is what it is, one reason per line.</inlineHelpText>
+        <type>LongTextArea</type>
+        <length>4000</length>
+        <visibleLines>10</visibleLines>
+        <required>false</required>
+    </fields>
+    <fields>
+        <fullName>Replay_URL__c</fullName>
+        <label>Replay URL</label>
+        <description>Link to the enriched Deal Replay for this opportunity on the StoryMyData platform.</description>
+        <inlineHelpText>Opens the deal's story as an animated replay.</inlineHelpText>
+        <type>Url</type>
+        <required>false</required>
+    </fields>
+    <fields>
+        <fullName>Rescue_Evidence_Level__c</fullName>
+        <label>Rescue Evidence Level</label>
+        <description>full = outside evidence (web and/or meeting transcript) was available. org_only = CRM data alone; treat the draft as low confidence.</description>
+        <inlineHelpText>org_only means the draft was written without outside evidence.</inlineHelpText>
+        <type>Picklist</type>
+        <required>false</required>
+        <valueSet>
+            <restricted>true</restricted>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value>
+                    <fullName>full</fullName>
+                    <label>full</label>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>org_only</fullName>
+                    <label>org_only</label>
+                    <default>false</default>
+                </value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+</CustomObject>

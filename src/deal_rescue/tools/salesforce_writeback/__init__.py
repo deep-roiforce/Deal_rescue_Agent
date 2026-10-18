@@ -1,0 +1,36 @@
+from deal_rescue.tools.salesforce_writeback.contract import (
+    FIELD_APPROVED,
+    FIELD_EVIDENCE_LEVEL,
+    FIELD_EXTERNAL_ID,
+    FIELD_REPLAY_URL,
+    FIELD_SCORE,
+    FIELD_SIGNALS,
+    TASK_SUBJECT_MAX,
+    AuditFinding,
+    DraftEmail,
+    SalesforceWritebackTool,
+    WritebackPayload,
+    WritebackResult,
+    audit_findings_from_state,
+    make_run_key,
+)
+from deal_rescue.tools.salesforce_writeback.tool import TOOL_NAME, get_tool
+
+__all__ = [
+    "FIELD_APPROVED",
+    "FIELD_EVIDENCE_LEVEL",
+    "FIELD_EXTERNAL_ID",
+    "FIELD_REPLAY_URL",
+    "FIELD_SCORE",
+    "FIELD_SIGNALS",
+    "TASK_SUBJECT_MAX",
+    "AuditFinding",
+    "DraftEmail",
+    "SalesforceWritebackTool",
+    "WritebackPayload",
+    "WritebackResult",
+    "audit_findings_from_state",
+    "make_run_key",
+    "TOOL_NAME",
+    "get_tool",
+]
