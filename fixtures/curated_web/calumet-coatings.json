@@ -1,0 +1,24 @@
+{
+  "found": true,
+  "items": [
+    {
+      "id": "expansion_second_shift_2026-08-22",
+      "date": "2026-08-22",
+      "title": "Calumet Coatings adds a second shift on the powder line in Hammond",
+      "url": "https://example.com/journal/calumet-second-shift",
+      "snippet": "Calumet Coatings is adding a night shift on its powder coating line, citing batch changeover time as the limiting factor on throughput.",
+      "signal_type": "expansion",
+      "source_name": "Northwest Indiana Business Ledger"
+    },
+    {
+      "id": "jobs_scheduler_2026-09-04",
+      "date": "2026-09-04",
+      "title": "Calumet Coatings is hiring: Production Scheduler",
+      "url": "https://example.com/jobs/calumet-production-scheduler",
+      "snippet": "Calumet Coatings posted an opening for a Production Scheduler to coordinate batch sequencing across coating lines.",
+      "signal_type": "jobs",
+      "source_name": "careers page"
+    }
+  ],
+  "reason": null
+}

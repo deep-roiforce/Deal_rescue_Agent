@@ -1,0 +1,33 @@
+{
+  "found": true,
+  "items": [
+    {
+      "id": "expansion_press_line_2026-08-18",
+      "date": "2026-08-18",
+      "title": "Northgate Stamping adds second press line at Kokomo plant",
+      "url": "https://example.com/journal/northgate-press-line",
+      "snippet": "Northgate Stamping is installing a second stamping press line in Kokomo, citing quoting turnaround and ERP integration gaps as the bottleneck on new program intake.",
+      "signal_type": "expansion",
+      "source_name": "Kokomo Business Ledger"
+    },
+    {
+      "id": "jobs_erp_analyst_2026-09-05",
+      "date": "2026-09-05",
+      "title": "Northgate Stamping is hiring: ERP Integration Analyst",
+      "url": "https://example.com/jobs/northgate-erp-analyst",
+      "snippet": "Northgate Stamping posted an opening for an ERP Integration Analyst to connect plant-floor quoting with the corporate ERP rollout.",
+      "signal_type": "jobs",
+      "source_name": "careers page"
+    },
+    {
+      "id": "news_scrap_rate_award_2026-09-12",
+      "date": "2026-09-12",
+      "title": "Northgate Stamping cited for scrap-rate reduction in Building C pilot",
+      "url": "https://example.com/news/northgate-scrap-pilot",
+      "snippet": "A regional manufacturing association highlighted Northgate Stamping's Building C pilot, which cut scrap rates using a new quoting-to-floor data dashboard.",
+      "signal_type": "news",
+      "source_name": "Indiana Manufacturing Association"
+    }
+  ],
+  "reason": null
+}

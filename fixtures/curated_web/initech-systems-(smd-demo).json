@@ -1,0 +1,24 @@
+{
+  "found": true,
+  "items": [
+    {
+      "id": "news_division_reorg_2026-08-28",
+      "date": "2026-08-28",
+      "title": "Initech Systems consolidates divisions ahead of platform expansion",
+      "url": "https://example.com/news/initech-division-reorg",
+      "snippet": "Initech Systems is consolidating two divisions under a single operations lead as it prepares a company-wide platform expansion.",
+      "signal_type": "news",
+      "source_name": "regional tech press"
+    },
+    {
+      "id": "jobs_onboarding_lead_2026-09-09",
+      "date": "2026-09-09",
+      "title": "Initech Systems is hiring: Onboarding Program Lead",
+      "url": "https://example.com/jobs/initech-onboarding-lead",
+      "snippet": "Initech Systems posted an opening for an Onboarding Program Lead to cut new-division ramp time, a pain point named by division leads.",
+      "signal_type": "jobs",
+      "source_name": "careers page"
+    }
+  ],
+  "reason": null
+}

@@ -1,0 +1,96 @@
+{
+  "milestones": [
+    {
+      "date": "2026-03-04",
+      "label": "Deal created — $240K quoting system",
+      "type": "stage",
+      "value": 240000
+    },
+    {
+      "date": "2026-06-10",
+      "label": "Negotiation opened",
+      "type": "stage",
+      "value": 240000
+    },
+    {
+      "date": "2026-07-14",
+      "label": "Champion: 'let me socialize this internally'",
+      "type": "meeting"
+    },
+    {
+      "date": "2026-08-20",
+      "label": "Champion departed company",
+      "type": "external"
+    },
+    {
+      "date": "2026-08-22",
+      "label": "Stage slipped back to Proposal",
+      "type": "stage",
+      "value": 240000
+    },
+    {
+      "date": "2026-09-02",
+      "label": "Plant 3 expansion announced",
+      "type": "external"
+    }
+  ],
+  "table_data": [
+    {
+      "date": "2026-03-04",
+      "stage": "Discovery",
+      "amount": 240000
+    },
+    {
+      "date": "2026-03-28",
+      "stage": "Qualification",
+      "amount": 240000
+    },
+    {
+      "date": "2026-04-18",
+      "stage": "Proposal",
+      "amount": 240000
+    },
+    {
+      "date": "2026-06-10",
+      "stage": "Negotiation",
+      "amount": 240000
+    },
+    {
+      "date": "2026-08-22",
+      "stage": "Proposal",
+      "amount": 240000
+    }
+  ],
+  "email_draft": {
+    "to_contact_id": "003MER0000000002",
+    "to_name": "Ray Gutierrez",
+    "subject": "Plant 3 and the quoting turnaround you raised in July",
+    "body": "Ray,\n\nI saw the Plant 3 announcement — congratulations. It brought me back to the review on July 14, where you said a two-day quote turnaround is what loses you jobs to the shop down the road. A third plant makes that constraint bigger, not smaller.\n\nI know things shifted internally since Dana moved on, so I don't want to assume where this sits. The $240K proposal we put together is still the same scope, and the fastest path is probably 20 minutes with you and whoever owns estimating now.\n\nWould Thursday or Friday work?\n\nDeep",
+    "grounding_note": "references: Plant 3 expansion PR (2026-09-02), 2026-07-14 meeting, champion departure (2026-08-20), $240K amount from opportunity record",
+    "low_context_flag": false
+  },
+  "deal_score": {
+    "value": 34,
+    "base_deterministic": 40,
+    "llm_adjustment": -6,
+    "signals": [
+      "19 days silent",
+      "2 close-date pushes",
+      "stage regression: Negotiation → Proposal on 2026-08-22",
+      "declining activity over trailing 60 days",
+      "champion departed (web)",
+      "expansion announced (web)",
+      "positive intent in 2026-07-14 transcript"
+    ]
+  },
+  "sources": [
+    "opp_history",
+    "activities",
+    "contacts",
+    "transcript:2026-07-14",
+    "web:people_change_2026-08-20",
+    "web:expansion_pr_2026-09-02"
+  ],
+  "evidence_level": "full",
+  "rescue_report": "THE READ\nMeridian Fabrication's \"Plant 2 Quoting System Replacement\" has gone quiet in Proposal/Price Quote with the $240,000 proposal unchanged, and the silence has a likely cause: Dana Kowalski, the champion who said she would socialize the proposal internally, has left for Halstead Industrial. The deal did not die -- it lost its owner.\n\nThe business case is stronger than when it stalled. Meridian announced a Plant 3 expansion citing quoting turnaround as a constraint on growth, and is hiring an Estimating/Quoting Supervisor to own exactly the problem this system solves. In the July solution review Ray Gutierrez called quote turnaround the pain felt every week, and Anne Park set the bar: payback under eighteen months gets approved this cycle.\n\nTHE RESCUE PLAN\n1. Re-anchor on Ray Gutierrez. He is the remaining active voice in the buying group and the strongest pain owner; the drafted email picks the thread back up through him without pretending Dana's departure did not happen.\n2. Re-send the budget framing to Anne Park with the payback assumptions she asked for in July. Finance reviews capital requests at month end -- land it before that.\n3. Use the Plant 3 announcement as the urgency: the expansion makes quoting turnaround worse before it gets better, which is the argument for deciding now.\n4. Ask Ray who inherits Dana's sign-off. Until a new decision maker is named, this deal has no one who can say yes."
+}

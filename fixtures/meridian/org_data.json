@@ -1,0 +1,47 @@
+{
+  "account": {
+    "id": "001MER0000000001",
+    "name": "Meridian Fabrication",
+    "industry": "Metal Fabrication",
+    "annual_revenue": 180000000,
+    "billing_city": "Fort Wayne",
+    "billing_state": "IN"
+  },
+  "opportunity": {
+    "id": "006MER0000000001",
+    "name": "Plant 2 Quoting System Replacement",
+    "account_id": "001MER0000000001",
+    "account_name": "Meridian Fabrication",
+    "amount": 240000,
+    "stage": "Proposal",
+    "close_date": "2026-09-30",
+    "created_date": "2026-03-04",
+    "last_activity_date": "2026-09-01",
+    "is_closed": false,
+    "owner_name": "Deep"
+  },
+  "stage_history": [
+    {"date": "2026-03-04", "field": "StageName", "old_value": null, "new_value": "Discovery", "amount": 240000},
+    {"date": "2026-03-28", "field": "StageName", "old_value": "Discovery", "new_value": "Qualification", "amount": 240000},
+    {"date": "2026-04-18", "field": "StageName", "old_value": "Qualification", "new_value": "Proposal", "amount": 240000},
+    {"date": "2026-06-10", "field": "StageName", "old_value": "Proposal", "new_value": "Negotiation", "amount": 240000},
+    {"date": "2026-07-18", "field": "CloseDate", "old_value": "2026-07-31", "new_value": "2026-08-29", "amount": 240000},
+    {"date": "2026-08-22", "field": "StageName", "old_value": "Negotiation", "new_value": "Proposal", "amount": 240000},
+    {"date": "2026-08-25", "field": "CloseDate", "old_value": "2026-08-29", "new_value": "2026-09-30", "amount": 240000}
+  ],
+  "contact_roles": [
+    {"contact_id": "003MER0000000001", "name": "Dana Kowalski", "title": "VP Operations", "role": "Champion", "email": "dana.kowalski@meridianfab.example", "is_primary": true, "active": false},
+    {"contact_id": "003MER0000000002", "name": "Ray Gutierrez", "title": "Plant Manager", "role": "Technical Buyer", "email": "ray.gutierrez@meridianfab.example", "is_primary": false, "active": true},
+    {"contact_id": "003MER0000000003", "name": "Anne Park", "title": "CFO", "role": "Economic Buyer", "email": "anne.park@meridianfab.example", "is_primary": false, "active": true}
+  ],
+  "activities": [
+    {"date": "2026-03-04", "type": "Event", "subject": "Discovery call — Dana + Ray", "direction": "meeting", "has_reply": true},
+    {"date": "2026-04-18", "type": "Email", "subject": "Proposal sent — $240K quoting system", "direction": "outbound", "has_reply": true},
+    {"date": "2026-05-12", "type": "Task", "subject": "Follow-up call with Dana", "direction": "outbound", "has_reply": true},
+    {"date": "2026-06-10", "type": "Event", "subject": "Negotiation kickoff — terms review", "direction": "meeting", "has_reply": true},
+    {"date": "2026-07-14", "type": "Event", "subject": "Solution review with Dana + Ray (recorded)", "direction": "meeting", "has_reply": true},
+    {"date": "2026-08-12", "type": "Email", "subject": "Checking in on next steps", "direction": "outbound", "has_reply": false},
+    {"date": "2026-08-21", "type": "Email", "subject": "Following up on the quoting rollout", "direction": "outbound", "has_reply": false},
+    {"date": "2026-09-01", "type": "Email", "subject": "Should I close this out?", "direction": "outbound", "has_reply": false}
+  ]
+}

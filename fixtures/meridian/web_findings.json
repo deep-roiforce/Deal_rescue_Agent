@@ -1,0 +1,33 @@
+{
+  "found": true,
+  "items": [
+    {
+      "id": "people_change_2026-08-20",
+      "date": "2026-08-20",
+      "title": "Dana Kowalski named COO at Halstead Industrial",
+      "url": "https://example.com/people-data/dana-kowalski",
+      "snippet": "People-data provider records a role change for Dana Kowalski, previously VP Operations at Meridian Fabrication, effective August 2026.",
+      "signal_type": "people_change",
+      "source_name": "people-data provider"
+    },
+    {
+      "id": "expansion_pr_2026-09-02",
+      "date": "2026-09-02",
+      "title": "Meridian Fabrication announces Plant 3 expansion in Fort Wayne",
+      "url": "https://example.com/journal/meridian-plant-3",
+      "snippet": "Meridian Fabrication will add a third plant, citing order backlog and quoting turnaround as constraints on growth.",
+      "signal_type": "expansion",
+      "source_name": "Fort Wayne Business Journal"
+    },
+    {
+      "id": "jobs_estimating_supervisor",
+      "date": "2026-09-08",
+      "title": "Meridian Fabrication is hiring: Estimating/Quoting Supervisor",
+      "url": "https://example.com/jobs/meridian-estimating-supervisor",
+      "snippet": "Meridian Fabrication posted an opening for an Estimating/Quoting Supervisor to own quote turnaround across plants.",
+      "signal_type": "jobs",
+      "source_name": "careers page"
+    }
+  ],
+  "reason": null
+}

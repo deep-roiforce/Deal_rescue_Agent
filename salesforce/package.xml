@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Opportunity.Rescue_Base_Score__c</members>
+        <members>Opportunity.Rescue_Base_Signals__c</members>
+        <members>Opportunity.Rescue_Days_Silent__c</members>
+        <members>Opportunity.Rescue_Health_Score__c</members>
+        <members>Opportunity.Rescue_Score__c</members>
+        <members>Opportunity.Rescue_Signals__c</members>
+        <members>Opportunity.Replay_URL__c</members>
+        <members>Opportunity.Rescue_Evidence_Level__c</members>
+        <members>Activity.Rescue_Draft_Approved__c</members>
+        <members>Activity.Rescue_Run_Key__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>DealRescueScore</members>
+        <members>DealRescueScoreBatch</members>
+        <members>DealRescueScoreTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>Deal_Rescue_Integration</members>
+        <name>PermissionSet</name>
+    </types>
+    <version>62.0</version>
+</Package>

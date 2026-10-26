@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deal Rescue</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@600;700&display=swap">
+<style>
+  :root {
+    --ground: #f6f7f9; --surface: #ffffff; --sunk: #eef1f4;
+    --line: #d7dde3; --line-soft: #e7ebef;
+    --ink: #161c23; --soft: #5a6773; --faint: #8d98a3;
+    --accent: #0e6c6a; --accent-soft: #e2efee;
+    --good: #1a7f37; --good-bg: #e3f2e8;
+    --warn: #9a6700; --warn-bg: #f7eeda;
+    --crit: #c23030; --crit-bg: #f9e5e5;
+    --radius: 6px;
+    --shadow: 0 1px 2px rgba(20,30,40,.05), 0 4px 14px rgba(20,30,40,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0e1317; --surface: #161d24; --sunk: #10161c;
+      --line: #2a353f; --line-soft: #212b34;
+      --ink: #e3e9ee; --soft: #9aa8b4; --faint: #6b7a87;
+      --accent: #45b1a8; --accent-soft: #11302e;
+      --good: #4ac26b; --good-bg: #11301b;
+      --warn: #d4a72c; --warn-bg: #332a10;
+      --crit: #ff7b72; --crit-bg: #3a1a18;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 14.5px;
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .num  { font-variant-numeric: tabular-nums; }
+
+  header {
+    display: flex; align-items: baseline; gap: 14px;
+    padding: 14px 22px; border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  header h1 { font-family: "IBM Plex Serif", Georgia, serif; font-size: 1.25rem; margin: 0; }
+  header .sub { color: var(--faint); font-size: .8rem; }
+  header .right { margin-left: auto; display: flex; gap: 8px; }
+  .chip {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem;
+    padding: 3px 9px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--soft); background: var(--sunk);
+  }
+
+  .layout { display: grid; grid-template-columns: 330px 1fr; gap: 18px;
+            padding: 18px 22px 40px; max-width: 1480px; margin: 0 auto; }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--line);
+           border-radius: var(--radius); box-shadow: var(--shadow); }
+  .panel > h2 {
+    margin: 0; padding: 11px 14px; font-size: .72rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
+    border-bottom: 1px solid var(--line-soft);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ---- shortlist ---- */
+  #deals { display: flex; flex-direction: column; }
+  .deal {
+    text-align: left; width: 100%; font: inherit; color: inherit;
+    background: none; border: 0; border-bottom: 1px solid var(--line-soft);
+    padding: 11px 14px; cursor: pointer; display: grid; gap: 3px;
+  }
+  .deal:last-child { border-bottom: 0; }
+  .deal { position: relative; }
+  .deal::after { content: "run ▸"; position: absolute; right: 12px; bottom: 11px;
+                 font: 600 .68rem "IBM Plex Mono", monospace; color: var(--accent);
+                 opacity: 0; transition: opacity .12s; }
+  .deal:hover::after { opacity: 1; }
+  .deal:hover { background: var(--sunk); }
+  .deal.active { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .deal .acct { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+  .deal .opp  { color: var(--soft); font-size: .82rem; }
+  .deal .meta { display: flex; gap: 12px; color: var(--faint);
+                font-family: "IBM Plex Mono", monospace; font-size: .74rem; }
+  .deal .meta .m-ok   { color: var(--good); }
+  .deal .meta .m-warn { color: var(--warn); }
+  .deal .meta .m-crit { color: var(--crit); }
+  .health { display: inline-flex; align-items: center; gap: 5px;
+            font-family: "IBM Plex Mono", monospace; font-size: .74rem; }
+  .health i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .h-good i { background: var(--good); }  .h-good { color: var(--good); }
+  .h-warn i { background: var(--warn); }  .h-warn { color: var(--warn); }
+  .h-crit i { background: var(--crit); }  .h-crit { color: var(--crit); }
+
+  /* ---- pipeline ---- */
+  .right { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  #pipe-wrap { padding: 10px 14px 16px; overflow-x: auto; }
+  svg { display: block; max-width: 100%; height: auto; }
+
+  .node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.4;
+               transition: stroke .12s; }
+  .node { cursor: pointer; outline: none; }
+  .node:hover rect, .node:focus-visible rect { stroke: var(--accent); stroke-width: 2; }
+  .node text.name { fill: var(--ink); font: 600 14px "IBM Plex Sans", sans-serif; }
+  .node text.tag  { fill: var(--faint); font: 10px "IBM Plex Sans", sans-serif; }
+  .node text.sys  { fill: var(--faint); font: 10px "IBM Plex Mono", monospace; }
+  .node text.stat { fill: var(--faint); font: 11px "IBM Plex Mono", monospace; }
+  .node text.det  { fill: var(--soft);  font: 10.5px "IBM Plex Mono", monospace; }
+  .edge { stroke: var(--line); stroke-width: 1.4; fill: none; }
+  .edge.retry { stroke-dasharray: 5 3; }
+
+  .node.running rect { stroke: var(--accent); stroke-width: 2; }
+  .node.running text.stat { fill: var(--accent); }
+  @media (prefers-reduced-motion: no-preference) {
+    .node.running rect { animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 50% { stroke-opacity: .35; } }
+  }
+  .node.done rect { stroke: var(--good); }
+  .node.done text.stat { fill: var(--good); }
+  .node.failed rect { stroke: var(--crit); stroke-width: 2; }
+  .node.failed text.stat { fill: var(--crit); }
+  .node.skipped rect { stroke-dasharray: 4 3; }
+
+  #attempt {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem;
+    color: var(--soft);
+  }
+
+  /* ---- results ---- */
+  #results { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+             gap: 18px; }
+  .card { background: var(--surface); border: 1px solid var(--line);
+          border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; }
+  .card h3 { margin: 0 0 8px; font-size: .72rem; font-weight: 600;
+             letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+
+  .score-big { font-family: "IBM Plex Mono", monospace; font-size: 2.6rem;
+               font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+  .score-sub { color: var(--soft); font-size: .82rem; margin-top: 4px; }
+  .verdict { display: inline-block; margin-top: 8px; padding: 3px 9px;
+             border-radius: 4px; font-size: .74rem; font-weight: 600; }
+  .v-crit { background: var(--crit-bg); color: var(--crit); }
+  .v-warn { background: var(--warn-bg); color: var(--warn); }
+  .v-good { background: var(--good-bg); color: var(--good); }
+
+  .ded { display: grid; grid-template-columns: 120px 1fr 34px; gap: 8px;
+         align-items: center; font-size: .78rem; margin-top: 7px; }
+  .ded .lbl { color: var(--soft); }
+  .ded .bar { height: 10px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
+  .ded .bar i { display: block; height: 100%; background: var(--accent);
+                border-radius: 4px; min-width: 2px; }
+  .ded .val { text-align: right; color: var(--ink);
+              font-family: "IBM Plex Mono", monospace; }
+  .score-how { color: var(--faint); font-size: .72rem; margin: 12px 0 0;
+               padding-top: 8px; border-top: 1px dashed var(--line-soft); }
+
+  /* ---- the story card: the run in prose, for readers who missed the animation ---- */
+  .card.wide { grid-column: 1 / -1; }
+  .story p { margin: 0 0 11px; font-size: .92rem; line-height: 1.68; color: var(--ink); }
+  .story p:last-child { margin-bottom: 0; }
+  .story b { color: var(--accent); font-weight: 600; }
+  .story .quiet { color: var(--soft); }
+
+  ul.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+  ul.plain li { font-family: "IBM Plex Mono", monospace; font-size: .76rem;
+                color: var(--soft); padding-left: 14px; position: relative; }
+  ul.plain li::before { content: "–"; position: absolute; left: 0; color: var(--faint); }
+
+  .mail .to { color: var(--soft); font-size: .8rem; }
+  .mail .subj { font-weight: 600; margin: 6px 0; }
+  .mail .body { white-space: pre-wrap; font-size: .84rem; color: var(--ink);
+                background: var(--sunk); border-radius: 4px; padding: 10px;
+                max-height: 240px; overflow: auto; }
+  .badge-warn { background: var(--warn-bg); color: var(--warn);
+                font-size: .7rem; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+
+  .ms { display: grid; grid-template-columns: 86px 54px 1fr; gap: 8px;
+        font-size: .78rem; padding: 4px 0; border-bottom: 1px dashed var(--line-soft); }
+  .ms:last-child { border-bottom: 0; }
+  .ms .d { font-family: "IBM Plex Mono", monospace; color: var(--faint); }
+  .ms .t { font-family: "IBM Plex Mono", monospace; font-size: .68rem;
+           text-transform: uppercase; color: var(--accent); }
+
+  /* ---- the run status line: what is happening, in plain words ---- */
+  .runline {
+    display: flex; align-items: center; gap: 9px;
+    padding: 10px 14px; font-size: .86rem; color: var(--soft);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .runline.busy::before {
+    content: ""; width: 11px; height: 11px; flex: none;
+    border-radius: 50%; border: 2px solid var(--line);
+    border-top-color: var(--accent); animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .runline.good { color: var(--good); font-weight: 600; }
+  .runline.bad  { color: var(--crit); font-weight: 600; }
+
+  /* ---- live feed: what each node produced, as it happens ---- */
+  #feed-wrap { max-height: 380px; overflow-y: auto; padding: 6px 0; }
+  .fe { display: grid; grid-template-columns: 52px 1fr; gap: 10px;
+        padding: 8px 14px; border-bottom: 1px dashed var(--line-soft); }
+  .fe:last-child { border-bottom: 0; }
+  .fe .t { font-family: "IBM Plex Mono", monospace; font-size: .7rem;
+           color: var(--faint); padding-top: 2px; }
+  .fe .what { min-width: 0; }
+  .fe .who { font-weight: 600; font-size: .8rem; display: flex; gap: 8px;
+             align-items: baseline; cursor: pointer; user-select: none; }
+  .fe .who::after { content: "▾"; color: var(--faint); font-size: .7rem;
+                    margin-left: auto; }
+  .fe.closed .who::after { content: "▸"; }
+  .fe.closed ul { display: none; }
+  .fe .who .sys { font-family: "IBM Plex Mono", monospace; font-weight: 400;
+                  font-size: .68rem; color: var(--faint); }
+  .fe ul { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+  .fe li { font-family: "IBM Plex Mono", monospace; font-size: .74rem;
+           color: var(--soft); overflow-wrap: anywhere; }
+  .fe li .q { color: var(--ink); }
+  .fe.good .who { color: var(--good); }
+  .fe.bad  .who { color: var(--crit); }
+  .fe.info .who { color: var(--accent); }
+  .fe.flash { background: var(--accent-soft); transition: background .3s; }
+
+  /* ---- inside the gate: the rulebook, enlarged on click ---- */
+  #gate-overlay { position: fixed; inset: 0; z-index: 60; display: flex;
+    align-items: center; justify-content: center; padding: 22px;
+    background: rgba(8, 14, 19, .55); backdrop-filter: blur(2px); }
+  #gate-modal { background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; box-shadow: var(--shadow); width: min(880px, 100%);
+    max-height: 88vh; overflow-y: auto; }
+  #gate-modal > h2 { margin: 0; padding: 14px 18px; display: flex; gap: 10px;
+    align-items: center; font-size: .78rem; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--faint);
+    border-bottom: 1px solid var(--line-soft);
+    position: sticky; top: 0; background: var(--surface); }
+  #gate-close { margin-left: auto; cursor: pointer; font: 600 .95rem "IBM Plex Sans";
+    background: none; border: 0; color: var(--soft); padding: 2px 8px; }
+  #gate-close:hover { color: var(--crit); }
+  .gate-section { padding: 14px 18px; border-bottom: 1px solid var(--line-soft); }
+  .gate-section:last-child { border-bottom: 0; }
+  .gate-section h4 { margin: 0 0 8px; font-size: .78rem; color: var(--soft);
+    text-transform: uppercase; letter-spacing: .07em; }
+  .gv { display: grid; gap: 4px; margin-bottom: 10px; }
+  .gv .head { font: 600 .8rem "IBM Plex Sans"; display: flex; gap: 8px; }
+  .gv.pass .head { color: var(--good); }
+  .gv.fail .head { color: var(--crit); }
+  .gv li { font-family: "IBM Plex Mono", monospace; font-size: .74rem;
+    color: var(--crit); overflow-wrap: anywhere; }
+  .rule { display: grid; grid-template-columns: 18px 1fr; gap: 8px;
+    padding: 7px 0; border-bottom: 1px dashed var(--line-soft); font-size: .82rem; }
+  .rule:last-child { border-bottom: 0; }
+  .rule .no { color: var(--accent); font: 600 .74rem "IBM Plex Mono", monospace; }
+  .rule .live { display: block; margin-top: 2px; font: .72rem "IBM Plex Mono", monospace;
+    color: var(--faint); overflow-wrap: anywhere; }
+  .gate-note { font-size: .78rem; color: var(--soft); background: var(--sunk);
+    border-radius: 5px; padding: 10px 12px; }
+
+  #errors { border-color: var(--crit); }
+  #errors h3 { color: var(--crit); }
+  #errors li { color: var(--crit); }
+
+  a.replay { display: inline-block; margin-top: 8px; padding: 7px 14px;
+             border-radius: 5px; background: var(--accent); color: #fff;
+             text-decoration: none; font-weight: 600; font-size: .84rem; }
+  a.replay:hover { filter: brightness(1.1); }
+
+  #banner { display: none; margin: 0 0 14px; padding: 10px 14px;
+            border: 1px solid var(--crit); background: var(--crit-bg);
+            color: var(--crit); border-radius: var(--radius); font-size: .85rem; }
+  #banner.good { border-color: var(--good); background: var(--good-bg); color: var(--good); }
+  .authbtn {
+    display: inline-flex; align-items: center; gap: 7px;
+    font: 600 .78rem "IBM Plex Sans", sans-serif; text-decoration: none;
+    color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px;
+    cursor: pointer; box-shadow: var(--shadow);
+  }
+  .authbtn:hover { border-color: var(--accent); color: var(--accent); }
+  .authbtn .glyph {
+    font-family: "IBM Plex Serif", serif; font-weight: 700; font-size: .85rem;
+    width: 16px; text-align: center;
+  }
+  .chip.ok { color: var(--good); border-color: var(--good); background: var(--good-bg); }
+  .hint { color: var(--faint); padding: 18px 14px; font-size: .85rem; }
+  .hidden { display: none !important; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Deal Rescue</h1>
+  <span class="sub">the pipeline, live</span>
+  <div class="right" id="conn">
+    <span class="chip" id="chip-lane">…</span>
+    <span class="chip" id="chip-asof">…</span>
+    <a class="chip" href="/setup" style="text-decoration:none">setup</a>
+  </div>
+</header>
+
+<div class="layout">
+
+  <section class="panel" aria-label="Deals needing attention">
+    <h2>Needs attention <span id="attempt-spacer" style="flex:1"></span>
+        <button id="refresh" class="chip" style="cursor:pointer">refresh</button></h2>
+    <div id="deals"><div class="hint">Loading shortlist…</div></div>
+  </section>
+
+  <div class="right">
+    <div id="banner" role="alert"></div>
+
+    <section class="panel" aria-label="Pipeline">
+      <h2>Run <span style="flex:1"></span><span id="attempt"></span></h2>
+      <div class="runline" id="runline" aria-live="polite">
+        Pick a deal on the left to watch a rescue run — every step shows up here as it happens.
+      </div>
+      <div id="pipe-wrap">
+        <svg viewBox="0 0 1110 308" role="img" aria-label="Rescue pipeline: three parallel fetchers feed the deterministic score, Claude's synthesis, the validation gate, then publish. Click a node to jump to what it produced.">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="var(--line)"/>
+            </marker>
+          </defs>
+          <!-- edges -->
+          <path class="edge" d="M190 57  H220 V135 H250" marker-end="url(#arr)"/>
+          <path class="edge" d="M190 149 H250" marker-end="url(#arr)"/>
+          <path class="edge" d="M190 241 H220 V163 H250" marker-end="url(#arr)"/>
+          <path class="edge" d="M420 149 H480" marker-end="url(#arr)"/>
+          <path class="edge" d="M650 149 H700" marker-end="url(#arr)"/>
+          <path class="edge retry" d="M755 112 V86 H565 V112" marker-end="url(#arr)"/>
+          <path class="edge" d="M870 149 H920" marker-end="url(#arr)"/>
+
+          <g class="node" id="n-fetch_org" transform="translate(20,20)" tabindex="0" role="button">
+            <title>Reads the opportunity, stage history, contact roles and the activity log from your Salesforce org. Org data is the floor: without it the run ends. Click to jump to what came back.</title>
+            <rect width="170" height="74" rx="7"/>
+            <text class="name" x="12" y="22">Salesforce</text>
+            <text class="tag"  x="12" y="37">CRM facts — the floor</text>
+            <text class="sys"  x="12" y="52">fetch_org</text>
+            <text class="stat" x="12" y="67">waiting</text>
+            <text class="det"  x="0"  y="92"></text>
+          </g>
+          <g class="node" id="n-fetch_web" transform="translate(20,112)" tabindex="0" role="button">
+            <title>Searches the outside world for news, expansions, people changes and job postings about this account. Allowed to come back empty — enrichment never fails the run. Click to see the findings.</title>
+            <rect width="170" height="74" rx="7"/>
+            <text class="name" x="12" y="22">Web research</text>
+            <text class="tag"  x="12" y="37">outside-world signals</text>
+            <text class="sys"  x="12" y="52">fetch_web</text>
+            <text class="stat" x="12" y="67">waiting</text>
+            <text class="det"  x="0"  y="92"></text>
+          </g>
+          <g class="node" id="n-fetch_transcript" transform="translate(20,204)" tabindex="0" role="button">
+            <title>Finds the newest meeting transcript Doc for this account in Google Drive and keeps the lines with buying-signal vocabulary. Also allowed to come back empty. Click to read the quotes.</title>
+            <rect width="170" height="74" rx="7"/>
+            <text class="name" x="12" y="22">Transcript</text>
+            <text class="tag"  x="12" y="37">what the buyer said</text>
+            <text class="sys"  x="12" y="52">fetch_transcript</text>
+            <text class="stat" x="12" y="67">waiting</text>
+            <text class="det"  x="0"  y="92"></text>
+          </g>
+          <g class="node" id="n-assemble" transform="translate(250,112)" tabindex="0" role="button">
+            <title>Pure arithmetic: the rubric turns CRM facts into a base score (start at 100, deduct for silence, close-date pushes, stage regressions, declining activity). No LLM anywhere in this box. Click for the math.</title>
+            <rect width="170" height="74" rx="7"/>
+            <text class="name" x="12" y="22">Score</text>
+            <text class="tag"  x="12" y="37">rubric math — no LLM</text>
+            <text class="sys"  x="12" y="52">assemble</text>
+            <text class="stat" x="12" y="67">waiting</text>
+            <text class="det"  x="0"  y="92"></text>
+          </g>
+          <g class="node" id="n-synthesize" transform="translate(480,112)" tabindex="0" role="button">
+            <title>Claude reads the whole evidence bundle and drafts the timeline, the email and a bounded score adjustment (±15, must cite a signal). It may only select, label and annotate — every date, amount and contact it uses was handed to it. Click to see the draft.</title>
+            <rect width="170" height="74" rx="7"/>
+            <text class="name" x="12" y="22">Claude</text>
+            <text class="tag"  x="12" y="37">drafts &amp; judges, ±15 max</text>
+            <text class="sys"  x="12" y="52">synthesize</text>
+            <text class="stat" x="12" y="67">waiting</text>
+            <text class="det"  x="0"  y="92"></text>
+          </g>
+          <g class="node" id="n-validate" transform="translate(700,112)" tabindex="0" role="button">
+            <title>The gate re-checks every date, amount, contact and citation in Claude's output against what was actually fetched. A rejection goes back to Claude with the reasons; after two retries the run fails closed and publishes nothing. Click to open the full rulebook with this run's verdicts.</title>
+            <rect width="170" height="74" rx="7"/>
+            <text class="name" x="12" y="22">The gate</text>
+            <text class="tag"  x="12" y="37">rejects anything ungrounded</text>
+            <text class="sys"  x="12" y="52">validate</text>
+            <text class="stat" x="12" y="67">waiting</text>
+            <text class="det"  x="0"  y="92"></text>
+          </g>
+          <g class="node" id="n-publish" transform="translate(920,112)" tabindex="0" role="button">
+            <title>Publishes the rescue brief — the model's full read of the deal, the rescue plan, all the evidence and the Salesforce record on one page — and writes the draft back. No email is ever sent from here; Salesforce sends natively after a human approves. Click to open the published report.</title>
+            <rect width="170" height="74" rx="7"/>
+            <text class="name" x="12" y="22">Publish</text>
+            <text class="tag"  x="12" y="37">draft only — human approves</text>
+            <text class="sys"  x="12" y="52">publish</text>
+            <text class="stat" x="12" y="67">waiting</text>
+            <text class="det"  x="0"  y="92"></text>
+          </g>
+          <text x="585" y="78" fill="var(--faint)" font-size="10.5" font-family="IBM Plex Mono, monospace">reject → retry ≤2</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="feed-panel" aria-label="Live node output">
+      <h2>Inner workings — what each node produced
+        <span style="flex:1"></span>
+        <button id="feed-toggle" class="chip" style="cursor:pointer">collapse all</button>
+      </h2>
+      <div id="feed-wrap"><div id="feed"></div></div>
+    </section>
+
+    <div id="results" class="hidden">
+      <div class="card wide story" id="card-story">
+        <h3>The story of this run</h3>
+        <div id="story"></div>
+      </div>
+
+      <div class="card" id="card-score">
+        <h3>Deal score</h3>
+        <div class="score-big num" id="score-value">–</div>
+        <div class="score-sub" id="score-sub"></div>
+        <span class="verdict" id="score-verdict"></span>
+        <div id="deductions"></div>
+        <p class="score-how">score = 100 − rubric deductions + agent adjustment
+          (±15 max, must cite a signal). The rubric is pure arithmetic over CRM
+          facts; the LLM never sets the base.</p>
+      </div>
+
+      <div class="card">
+        <h3>Signals — why</h3>
+        <ul class="plain" id="signals"></ul>
+      </div>
+
+      <div class="card mail">
+        <h3 style="display:flex;align-items:center;gap:8px">Email draft
+          <span id="low-context" class="badge-warn hidden">low context</span>
+          <span style="flex:1"></span>
+          <button id="copy-mail" class="chip" style="cursor:pointer">copy</button></h3>
+        <div class="to" id="mail-to"></div>
+        <div class="subj" id="mail-subject"></div>
+        <div class="body" id="mail-body"></div>
+      </div>
+
+      <div class="card">
+        <h3>Timeline for the replay</h3>
+        <div id="milestones"></div>
+        <a class="replay hidden" id="replay" target="_blank" rel="noopener">Open the rescue brief ↗</a>
+      </div>
+
+      <div class="card">
+        <h3>Grounding — citations</h3>
+        <ul class="plain" id="sources"></ul>
+      </div>
+
+      <div class="card hidden" id="errors">
+        <h3>Gate verdict — rejected</h3>
+        <ul class="plain" id="error-list"></ul>
+        <p style="font-size:.8rem;color:var(--soft);margin:10px 0 0">
+          Failing closed is the design working: nothing ungrounded was published.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="gate-overlay" class="hidden" role="dialog" aria-label="Inside the validation gate">
+  <div id="gate-modal">
+    <h2>Inside the gate — every check, this run's numbers
+      <button id="gate-close" aria-label="close">✕</button></h2>
+    <div class="gate-section" id="gate-verdicts-wrap">
+      <h4>Verdicts this run</h4>
+      <div id="gate-verdicts"><p class="gate-note">No run yet — pick a deal and the
+        gate's verdicts will land here attempt by attempt.</p></div>
+    </div>
+    <div class="gate-section">
+      <h4>The rulebook — what gets an output rejected</h4>
+      <div id="gate-rules"></div>
+    </div>
+    <div class="gate-section">
+      <p class="gate-note" id="gate-policy">A rejection is sent back to Claude verbatim as
+        <span class="mono">prior_errors</span>, so the retry knows exactly what to fix.
+        After the retry budget is spent the run <b>fails closed</b>: nothing is published,
+        and the dashboard says why. "The agent said so" is never acceptance — the gate
+        re-derives every allowlist from the fetched data itself.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const FETCHERS = ["fetch_org", "fetch_web", "fetch_transcript"];
+let source = null, fetchersDone = 0, attempt = 0;
+
+function setNode(name, state, stat, detail) {
+  const g = $("n-" + name);
+  g.setAttribute("class", "node " + state);
+  g.querySelector("text.stat").textContent = stat;
+  if (detail !== undefined) g.querySelector("text.det").textContent = detail;
+}
+function resetPipeline() {
+  ["fetch_org","fetch_web","fetch_transcript","assemble","synthesize","validate","publish"]
+    .forEach((n) => setNode(n, "", "waiting", ""));
+  fetchersDone = 0; attempt = 0;
+  $("attempt").textContent = "";
+  $("results").classList.add("hidden");
+  $("errors").classList.add("hidden");
+  $("replay").classList.add("hidden");
+  $("banner").style.display = "none";
+  $("feed").innerHTML = "";
+  $("feed-panel").classList.add("hidden");
+  gateChecks = [];
+  runData = {};
+  runStarted = performance.now();
+}
+
+/* The one line a non-technical viewer actually reads. */
+function setRun(text, cls) {
+  const line = $("runline");
+  line.className = "runline" + (cls ? " " + cls : "");
+  line.textContent = text;
+}
+const elapsed = () => ((performance.now() - runStarted) / 1000).toFixed(0) + "s";
+
+/* ---- the live feed: one entry per node, with what it actually produced ---- */
+let runStarted = 0;
+
+function addFeed(title, sys, lines, tone) {
+  $("feed-panel").classList.remove("hidden");
+  const secs = ((performance.now() - runStarted) / 1000).toFixed(1);
+  const entry = document.createElement("div");
+  entry.className = "fe" + (tone ? " " + tone : "");
+  entry.innerHTML = '<span class="t"></span>' +
+    '<div class="what"><div class="who"><span class="label"></span>' +
+    '<span class="sys"></span></div><ul></ul></div>';
+  entry.querySelector(".t").textContent = secs + "s";
+  entry.querySelector(".label").textContent = title;
+  entry.querySelector(".sys").textContent = sys || "";
+  entry.dataset.node = sys || "";
+  entry.querySelector(".who").addEventListener("click", () =>
+    entry.classList.toggle("closed"));
+  const list = entry.querySelector("ul");
+  for (const line of lines) {
+    const li = document.createElement("li");
+    if (line && typeof line === "object") {          // {q: "quoted text"}
+      li.innerHTML = '<span class="q"></span>';
+      li.querySelector(".q").textContent = line.q;
+    } else li.textContent = line;
+    list.appendChild(li);
+  }
+  $("feed").appendChild(entry);
+  $("feed-wrap").scrollTop = $("feed-wrap").scrollHeight;
+}
+
+const money = (n) => n == null ? "?" : "$" + Number(n).toLocaleString();
+
+function feedFor(node, s) {
+  const d = s.detail || {};
+  if (node === "fetch_org") {
+    if (!s.ok) return addFeed("Salesforce", "fetch_org", [s.error || "no org data"], "bad");
+    const lines = [
+      `${d.opportunity} — ${d.stage} — ${money(d.amount)} — closes ${d.close_date}`,
+      `account: ${s.account}` + (d.account_line ? ` (${d.account_line})` : ""),
+      `owner ${d.owner || "?"} · created ${d.created || "?"} · last activity ${d.last_activity || "never"}`,
+    ];
+    const roles = (d.contact_roles || []).map((c) =>
+      `${c.name}${c.title ? ", " + c.title : ""} — ${c.role || "?"}${c.primary ? " (primary)" : ""}`);
+    lines.push(roles.length ? "contact roles:" : "contact roles: none");
+    for (const r of roles) lines.push("  · " + r);
+    if ((d.history || []).length) {
+      lines.push(`field history (last ${d.history.length} of ${s.history_rows}):`);
+      for (const h of d.history)
+        lines.push(`  · ${h.date} ${h.field}: ${h.from ?? "—"} → ${h.to ?? "—"}`);
+    }
+    if ((d.recent_activities || []).length) {
+      lines.push(`activity log (last ${d.recent_activities.length} of ${s.activities}):`);
+      for (const a of d.recent_activities)
+        lines.push(`  · ${a.date} [${a.kind || "?"}] ${a.subject || ""}`);
+    }
+    return addFeed("Salesforce — org data", "fetch_org", lines, "good");
+  }
+  if (node === "fetch_web") {
+    if (!s.found) return addFeed("Web research", "fetch_web", [s.reason || "nothing found"], "");
+    return addFeed("Web research — findings", "fetch_web",
+      (d.findings || []).map((f) => `${f.date || "undated"} [${f.signal_type}] ${f.title}`),
+      "good");
+  }
+  if (node === "fetch_transcript") {
+    if (!s.found) return addFeed("Transcript", "fetch_transcript", [s.reason || "no doc"], "");
+    const lines = [`${d.doc_title || "meeting"} — ${s.excerpts} excerpts kept`];
+    for (const q of d.quotes || []) lines.push({ q: `${q.speaker || "?"}: “${q.text}”` });
+    return addFeed("Transcript — Google Drive", "fetch_transcript", lines, "good");
+  }
+  if (node === "assemble") {
+    const math = (d.math && d.math.length) ? d.math : [`base ${s.base}/100`];
+    return addFeed("Deterministic score — the rubric", "assemble", [
+      "no LLM here: scoring.py computes this from CRM facts alone",
+      ...math,
+      ...(s.signals || []).map((sig) => "signal: " + sig),
+    ], "good");
+  }
+  if (node === "synthesize") {
+    if (d.status) return addFeed("Synthesis", "synthesize", ["transport failed: " + d.status], "bad");
+    const sc = d.score || {};
+    const lines = [`drafted to ${d.to_name || "?"} — “${d.subject || ""}”`];
+    if (sc.value != null) {
+      const sign = sc.adjustment >= 0 ? "+" : "−";
+      lines.push(
+        `score: ${sc.base} (rubric) ${sign} ${Math.abs(sc.adjustment)} (agent, ` +
+        `allowed ±${sc.bound ?? 15}, must cite a signal) = ${sc.value}`);
+      for (const sig of sc.agent_signals || []) lines.push("agent signal: " + sig);
+      if (sc.adjustment !== 0 && !(sc.agent_signals || []).length)
+        lines.push("⚠ nonzero adjustment with no new signal — the gate will reject this");
+    }
+    lines.push(`${d.milestones ?? 0} milestones selected · evidence ${d.evidence_level || "?"}`);
+    lines.push("cites: " + ((d.sources || []).join(", ") || "nothing"));
+    return addFeed(`Synthesis — attempt ${s.attempt}`, "synthesize", lines, "info");
+  }
+  if (node === "validate") {
+    if (s.passed) return addFeed("The gate — passed", "validate",
+      ["every date, amount and contact traced back to a fetched source"], "good");
+    return addFeed("The gate — rejected", "validate",
+      (s.errors || []).map((e) => "✗ " + e), "bad");
+  }
+  if (node === "publish") {
+    return addFeed("Publish", "publish", [
+      s.status === "published"
+        ? "rescue brief written + draft written back (approval pending in Salesforce)"
+        : String(s.status),
+      ...(s.replay_url ? ["brief: " + s.replay_url] : []),
+    ], s.status === "published" ? "good" : "bad");
+  }
+}
+
+function healthBand(score) {
+  if (score >= 70) return ["h-good", "healthy"];
+  if (score >= 45) return ["h-warn", "watch"];
+  return ["h-crit", "at risk"];
+}
+
+function chip(text, cls) {
+  const s = document.createElement("span");
+  s.className = "chip" + (cls ? " " + cls : "");
+  s.textContent = text;
+  return s;
+}
+function authButton(href, glyph, label) {
+  const a = document.createElement("a");
+  a.className = "authbtn"; a.href = href;
+  a.innerHTML = '<span class="glyph"></span><span></span>';
+  a.querySelector(".glyph").textContent = glyph;
+  a.querySelector("span:last-child").textContent = label;
+  return a;
+}
+
+async function loadHeader() {
+  const [h, s] = await Promise.all([
+    (await fetch("/healthz")).json(),
+    (await fetch("/auth/status")).json(),
+  ]);
+  $("chip-lane").textContent = "lane: " + (h.ranking || "?");
+  $("chip-asof").textContent = h.as_of;
+
+  const box = $("conn");
+  box.querySelectorAll(".dyn").forEach((n) => n.remove());
+  const add = (el) => { el.classList.add("dyn"); box.prepend(el); };
+
+  // Google first here so Salesforce ends up left-most after prepends.
+  if (s.google_connected) {
+    add(chip("Google ✓ " + (s.google_account || ""), "ok"));
+  } else if (!s.google_configured) {
+    const c = chip("Google: needs OAuth client");
+    c.title = "Add GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET to .env (console.cloud.google.com, Desktop app). This then becomes a sign-in button.";
+    add(c);
+  } else if (!s.user) {
+    add(chip("Google: connect Salesforce first"));
+  } else {
+    add(authButton("/auth/google/start", "G", "Sign in with Google"));
+  }
+
+  if (s.salesforce_connected) {
+    add(chip("⚡ " + (s.user || "connected"), "ok"));
+  } else if (s.salesforce_configured) {
+    add(authButton("/auth/salesforce/start", "⚡", "Sign in with Salesforce"));
+  } else {
+    add(chip("Salesforce: set SF_CLIENT_ID"));
+  }
+}
+
+(function authFeedback() {
+  const params = new URLSearchParams(location.search);
+  const err = params.get("auth_error");
+  const okp = params.get("connected");
+  const banner = $("banner");
+  if (err) {
+    banner.className = ""; banner.textContent = err; banner.style.display = "block";
+  } else if (okp) {
+    banner.className = "good";
+    banner.textContent = (okp === "google" ? "Google" : "Salesforce") + " connected. You're set.";
+    banner.style.display = "block";
+    setTimeout(() => { banner.style.display = "none"; }, 6000);
+  }
+  if (err || okp) history.replaceState(null, "", "/");
+})();
+
+async function loadShortlist() {
+  $("deals").innerHTML = '<div class="hint">Loading shortlist…</div>';
+  const data = await (await fetch("/shortlist")).json();
+  const box = $("deals");
+  box.innerHTML = "";
+  for (const e of data.entries) {
+    const [band, word] = healthBand(e.base_score);
+    const b = document.createElement("button");
+    b.className = "deal";
+    const closeChip = e.close_in_days == null ? ""
+      : e.close_in_days < 0 ? `<span class="m-crit">${-e.close_in_days}d past close</span>`
+      : e.close_in_days <= 7 ? `<span class="m-crit">closes in ${e.close_in_days}d</span>`
+      : `<span>closes in ${e.close_in_days}d</span>`;
+    const workedChip = e.days_since_rescue == null
+      ? `<span class="m-warn">not yet worked</span>`
+      : e.last_rescue_status === "published"
+        ? `<span class="m-ok">rescued ${e.days_since_rescue === 0 ? "today" : e.days_since_rescue + "d ago"} ✓</span>`
+        : `<span class="m-crit">last run failed — needs attention</span>`;
+    b.innerHTML = `
+      <span class="acct"><span></span>
+        <span class="health ${band}"><i></i>${e.base_score} ${word}</span></span>
+      <span class="opp"></span>
+      <span class="meta"><span>$${Number(e.amount).toLocaleString()}</span>
+        <span>${e.stall_days}d silent</span><span>${e.stage}</span></span>
+      <span class="meta">${closeChip}${workedChip}</span>`;
+    b.querySelector(".acct span").textContent = e.account_name;
+    b.querySelector(".opp").textContent = e.opportunity_name;
+    b.addEventListener("click", () => run(e, b));
+    box.appendChild(b);
+  }
+  if (!data.entries.length) box.innerHTML = '<div class="hint">Nothing stalled. Nice pipeline.</div>';
+}
+
+/* The handlers are shared between a LIVE stream and a REPLAY of a stored run,
+   so going back to (or reloading) the dashboard restores the last run exactly
+   as it rendered, without running the deal again. */
+function onStart(d) {
+  runData.start = d;
+  const syn = d.synthesis || {};
+  const m = d.modes || {};
+  addFeed("Run started — " + d.account_name, d.deal_id, [
+    `fetchers: salesforce ${m.salesforce_reads || "?"} · web ${m.web_research || "?"} · transcript ${m.transcript || "?"}`,
+    "synthesis: " + (syn.mode === "live" ? `live via ${syn.provider} (${syn.model})` : syn.mode || "?"),
+  ], "info");
+}
+
+function onDone(d, live) {
+  if (d.status === "published") {
+    if (live) setRun(`Published in ${elapsed()} — score ${d.score.value}, email drafted to `
+      + `${d.email.to_name || "?"} (approval still happens in Salesforce)`, "good");
+  } else {
+    ["synthesize"].forEach((n) => setNode(n, "failed", "gave up"));
+    setNode("publish", "skipped", "skipped", "nothing published");
+    if (live) setRun(`The gate failed this run closed after ${d.retries} attempt(s) — `
+      + "nothing ungrounded was published. That is the design working.", "bad");
+  }
+  renderResults(d);
+}
+
+function run(entry, button) {
+  if (source) source.close();
+  document.querySelectorAll(".deal.active").forEach((d) => d.classList.remove("active"));
+  button.classList.add("active");
+  resetPipeline();
+  setRun(`Rescuing ${entry.account_name} — fetching Salesforce, the web and the meeting transcript…`, "busy");
+  FETCHERS.forEach((n) => setNode(n, "running", "running"));
+
+  source = new EventSource("/rescue/stream?query=" + encodeURIComponent(entry.account_name));
+
+  runData.entry = entry;
+  runEvents = [];
+  const record = (t, data) =>
+    runEvents.push({ t, ms: Math.round(performance.now() - runStarted), data });
+
+  source.addEventListener("start", (ev) => {
+    const d = JSON.parse(ev.data);
+    record("start", d);
+    onStart(d);
+  });
+
+  source.addEventListener("node", (ev) => {
+    const { node, summary: s } = JSON.parse(ev.data);
+    record("node", { node, summary: s });
+    onNode(node, s);
+  });
+
+  source.addEventListener("done", (ev) => {
+    const d = JSON.parse(ev.data);
+    source.close(); source = null;
+    onDone(d, true);
+    record("done", d);
+    persistRun(entry);
+  });
+
+  source.addEventListener("error", (ev) => {
+    if (ev.data) {
+      $("banner").textContent = JSON.parse(ev.data).message;
+      $("banner").style.display = "block";
+      setRun("The run could not start — see the message above.", "bad");
+    }
+    if (source) { source.close(); source = null; }
+  });
+}
+
+function onNode(node, s) {
+    runData[node] = s;   // last word per node; the story is written from this
+    feedFor(node, s);
+    if (FETCHERS.includes(node)) {
+      if (node === "fetch_org") {
+        if (s.ok) setNode(node, "done", "done",
+          `${s.history_rows} history · ${s.contacts} contacts · ${s.activities} activities`);
+        else setNode(node, "failed", "failed", s.error || "no org data");
+      } else if (node === "fetch_web") {
+        setNode(node, "done", s.found ? "done" : "empty",
+          s.found ? `${s.items} findings, ${s.dated} dated` : (s.reason || "nothing found"));
+      } else {
+        setNode(node, "done", s.found ? "done" : "empty",
+          s.found ? `meeting ${s.meeting_date} · ${s.excerpts} excerpts` : (s.reason || "no doc"));
+      }
+      if (++fetchersDone === 3) {
+        setNode("assemble", "running", "running");
+        setRun("Evidence in — computing the deterministic score…", "busy");
+      }
+    }
+    else if (node === "assemble") {
+      setNode("assemble", "done", "done", `base ${s.base} · ${s.signals.length} signals`);
+      setNode("synthesize", "running", "running");
+      attempt = 1; $("attempt").textContent = "attempt 1";
+      setRun(`Base score ${s.base}/100 — Claude is reading the evidence and drafting (attempt 1)…`, "busy");
+    }
+    else if (node === "synthesize") {
+      attempt = s.attempt || attempt;
+      $("attempt").textContent = "attempt " + attempt;
+      setNode("synthesize", "done", "done", `attempt ${attempt}`);
+      setNode("validate", "running", "checking");
+      setRun(`Draft ready — the gate is checking every date, amount and contact (attempt ${attempt})…`, "busy");
+    }
+    else if (node === "validate") {
+      gateChecks.push(s);
+      if (s.passed) {
+        setNode("validate", "done", "passed", "all values grounded");
+        setNode("publish", "running", "running");
+        setRun("Draft passed the gate — publishing…", "busy");
+      } else {
+        setNode("validate", "failed", "rejected", `${s.errors.length} grounding error(s)`);
+        setNode("synthesize", "running", "retrying");
+        setRun(`The gate rejected attempt ${attempt} — Claude is retrying with the errors in hand…`, "busy");
+        $("error-list").innerHTML = s.errors.map((e) => `<li></li>`).join("");
+        [...$("error-list").children].forEach((li, i) => li.textContent = s.errors[i]);
+        $("errors").classList.remove("hidden");
+        $("results").classList.remove("hidden");
+      }
+    }
+    else if (node === "publish") {
+      setNode("publish", s.status === "published" ? "done" : "failed",
+        s.status === "published" ? "published" : s.status, s.replay_url ? "replay created" : "");
+    }
+}
+
+/* ---- remembering the last run, so back/close never costs a re-run ---- */
+let runEvents = [];
+const LAST_RUN_KEY = "deal-rescue-last-run";
+
+function persistRun(entry) {
+  try {
+    localStorage.setItem(LAST_RUN_KEY, JSON.stringify({
+      finished: Date.now(),
+      entry,
+      runline: { text: $("runline").textContent, cls: $("runline").className },
+      events: runEvents,
+    }));
+  } catch { /* private window etc. -- the live view still worked */ }
+}
+
+function restoreLastRun() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LAST_RUN_KEY)); } catch {}
+  if (!saved || !Array.isArray(saved.events) || !saved.events.length) return;
+
+  resetPipeline();
+  runData.entry = saved.entry || {};
+  FETCHERS.forEach((n) => setNode(n, "running", "running"));
+  for (const ev of saved.events) {
+    // re-anchor the clock so the feed keeps the run's original timestamps
+    runStarted = performance.now() - (ev.ms || 0);
+    if (ev.t === "start") onStart(ev.data);
+    else if (ev.t === "node") onNode(ev.data.node, ev.data.summary);
+    else if (ev.t === "done") onDone(ev.data, false);
+  }
+  const mins = Math.max(1, Math.round((Date.now() - saved.finished) / 60000));
+  const line = saved.runline || {};
+  $("runline").className = (line.cls || "runline").replace(" busy", "");
+  $("runline").textContent =
+    `${line.text || "Last run restored"} · restored from ${mins} min ago — click any deal to run fresh`;
+
+  const name = (saved.entry || {}).account_name;
+  document.querySelectorAll("#deals .deal").forEach((b) => {
+    const acct = b.querySelector(".acct span");
+    if (acct && acct.textContent === name) b.classList.add("active");
+  });
+}
+
+/* ---- the story: the whole run as prose, written from captured facts.
+   Deterministic template over run data — no model writes this, so it can be
+   read as a faithful account by someone who missed the animation. ---- */
+let runData = {};
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g,
+  (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function renderStory(d) {
+  const paragraphs = [];
+  const p = (html) => paragraphs.push(`<p>${html}</p>`);
+  const entry = runData.entry || {};
+  const org = (runData.fetch_org || {}).detail || {};
+  const web = runData.fetch_web || {};
+  const transcript = runData.fetch_transcript || {};
+  const assembleS = runData.assemble || {};
+  const synth = (runData.synthesize || {}).detail || {};
+  const syn = (runData.start || {}).synthesis || {};
+
+  // 1 — the deal and why it surfaced
+  const silent = entry.stall_days > 0
+    ? `${entry.stall_days} days without a touch`
+    : "its ranking in the risk lane";
+  p(`<b>${esc(entry.account_name || "This account")}</b>'s deal
+     <i>${esc(org.opportunity || entry.opportunity_name || "")}</i> —
+     ${esc(money(org.amount ?? entry.amount))} in ${esc(org.stage || entry.stage || "?")},
+     closing ${esc(org.close_date || "?")}, owned by ${esc(org.owner || "?")} —
+     surfaced on the shortlist after ${esc(silent)}.`);
+
+  // 2 — what the three fetchers brought back
+  const webBit = web.found
+    ? `web research brought back <b>${web.items} outside signal${web.items === 1 ? "" : "s"}</b>
+       ${(web.detail && web.detail.findings || []).slice(0, 2).map((f) => `“${esc(f.title)}”`).join(" and ")
+         ? "— " + (web.detail.findings || []).slice(0, 2).map((f) => `“${esc(f.title)}”`).join(" and ") : ""}`
+    : `web research came back empty <span class="quiet">(${esc(web.reason || "nothing found")})</span>`;
+  const trBit = transcript.found
+    ? `the Drive search found the <b>${esc(transcript.meeting_date || "")} meeting transcript</b>
+       and kept ${transcript.excerpts} buying-signal quotes`
+    : `no meeting transcript was found <span class="quiet">(${esc(transcript.reason || "")})</span>`;
+  const n = (v, word) => `${v ?? "?"} ${word}${v === 1 ? "" : "s"}`;
+  p(`Three fetchers went out in parallel. Salesforce returned the full record —
+     ${n((runData.fetch_org || {}).history_rows, "field change")},
+     ${n((runData.fetch_org || {}).contacts, "contact role")},
+     ${n((runData.fetch_org || {}).activities, "logged activity").replace("activitys", "activities")};
+     ${webBit}; and ${trBit}.`);
+
+  // 3 — the arithmetic
+  const dedBits = Object.entries(d.deductions || {}).filter(([, v]) => v > 0)
+    .map(([k, v]) => `−${v} for ${k.replaceAll("_", " ")}`);
+  p(`The rubric — plain arithmetic, no model — started the score at 100 and took
+     ${dedBits.length ? dedBits.map(esc).join(", ") : "nothing off"},
+     landing on a base of <b>${d.score.base ?? "?"}/100</b>.`);
+
+  // 4 — Claude's judgment
+  const sc = synth.score || {};
+  const adjustment = d.score.adjustment ?? sc.adjustment;
+  const firstWhy = (sc.agent_signals || [])[0];
+  const adjBit = !adjustment
+    ? "left the rubric's number standing"
+    : `moved it ${adjustment > 0 ? "up" : "down"} by ${Math.abs(adjustment)}
+       <span class="quiet">(allowed ±${sc.bound ?? 15}, must cite a signal)</span>${
+       firstWhy ? ` — its lead reason: “${esc(firstWhy)}”` : ""}`;
+  p(`<b>${esc(syn.model || "Claude")}</b> read the whole bundle, drafted an email to
+     <b>${esc(d.email.to_name || "?")}</b> (“${esc(d.email.subject || "")}”),
+     picked ${(d.milestones || []).length} milestones for the replay timeline, and
+     ${adjBit}. Final score: <b>${d.score.value ?? "?"}/100</b>. Every date, amount
+     and name it used was handed to it — the model selects and labels, it never invents.`);
+
+  // 5 — the gate's verdict
+  const rejected = gateChecks.filter((g) => !g.passed);
+  if (!rejected.length) {
+    p(`The gate checked all of it against the fetched evidence — dates, amounts,
+       the recipient, every citation — and <b>passed it on the first attempt</b>.`);
+  } else if (d.status === "published") {
+    p(`The gate <b>rejected ${rejected.length} attempt${rejected.length === 1 ? "" : "s"}</b>
+       <span class="quiet">(first complaint: “${esc((rejected[0].errors || [])[0] || "")}”)</span>,
+       sent the exact errors back, and passed the corrected draft on attempt ${d.retries}.`);
+  } else {
+    p(`The gate rejected every attempt — ${d.retries} in all
+       <span class="quiet">(last complaint: “${esc((rejected[rejected.length - 1]?.errors || [])[0] || "")}”)</span> —
+       and <b>failed the run closed. Nothing was published.</b> That is the design
+       working: an ungrounded draft never reaches Salesforce.`);
+  }
+
+  // 6 — what happens next
+  if (d.status === "published") {
+    p(`A <a href="${esc(d.replay_url || "#")}" target="_blank" rel="noopener">
+       <b>rescue brief</b></a> was published — the deal, the evidence, and how to
+       save it, on one page — and the draft is written back with an approval flag.
+       <b>No email has been sent</b> — a human approves, and Salesforce sends
+       natively. Click a pipeline node above to inspect any step.`);
+  }
+
+  $("story").innerHTML = paragraphs.join("");
+}
+
+function renderResults(d) {
+  $("results").classList.remove("hidden");
+  renderStory(d);
+
+  const score = d.score.value;
+  $("score-value").textContent = score ?? "–";
+  $("score-sub").textContent = score == null ? "" :
+    `base ${d.score.base} · agent ${d.score.adjustment >= 0 ? "+" : ""}${d.score.adjustment} · evidence ${d.evidence_level || "?"}`;
+  const v = $("score-verdict");
+  if (score != null) {
+    const [band, word] = healthBand(score);
+    v.className = "verdict v-" + band.slice(2);
+    v.textContent = word === "at risk" ? "needs rescue" : word;
+  } else { v.className = "verdict"; v.textContent = ""; }
+
+  const dd = $("deductions"); dd.innerHTML = "";
+  const LABELS = { days_silent: "days silent", close_date_pushes: "close-date pushes",
+                   stage_regressions: "stage regression", activity_slope: "activity slope" };
+  const entries = Object.entries(d.deductions || {}).filter(([, v]) => v > 0);
+  const max = Math.max(1, ...entries.map(([, v]) => v));
+  for (const [key, value] of entries) {
+    const row = document.createElement("div");
+    row.className = "ded";
+    row.innerHTML = `<span class="lbl"></span>
+      <span class="bar"><i style="width:${Math.round(100 * value / max)}%"></i></span>
+      <span class="val num">−${value}</span>`;
+    row.querySelector(".lbl").textContent = LABELS[key] || key;
+    dd.appendChild(row);
+  }
+
+  $("signals").innerHTML = d.score.signals.map(() => "<li></li>").join("");
+  [...$("signals").children].forEach((li, i) => li.textContent = d.score.signals[i]);
+
+  lastEmail = d.email;
+  $("mail-to").textContent = d.email.to_name ? "To: " + d.email.to_name : "";
+  $("mail-subject").textContent = d.email.subject || "";
+  $("mail-body").textContent = d.email.body || "";
+  $("low-context").classList.toggle("hidden", !d.email.low_context);
+
+  $("milestones").innerHTML = d.milestones.map(() =>
+    `<div class="ms"><span class="d"></span><span class="t"></span><span></span></div>`).join("");
+  [...$("milestones").children].forEach((row, i) => {
+    const m = d.milestones[i];
+    row.children[0].textContent = m.date;
+    row.children[1].textContent = m.type;
+    row.children[2].textContent = m.label;
+  });
+
+  $("sources").innerHTML = d.sources.map(() => "<li></li>").join("");
+  [...$("sources").children].forEach((li, i) => li.textContent = d.sources[i]);
+
+  if (d.replay_url) {
+    $("replay").href = d.replay_url;
+    $("replay").classList.remove("hidden");
+  }
+
+  if (d.validation_errors.length && d.status !== "published") {
+    $("error-list").innerHTML = d.validation_errors.map(() => "<li></li>").join("");
+    [...$("error-list").children].forEach((li, i) => li.textContent = d.validation_errors[i]);
+    $("errors").classList.remove("hidden");
+  } else if (d.status === "published") {
+    $("errors").classList.add("hidden");
+  }
+}
+
+let lastEmail = null;
+
+$("refresh").addEventListener("click", async () => {
+  $("refresh").textContent = "refreshing…";
+  try {
+    await fetch("/shortlist/refresh", { method: "POST" });
+    await loadShortlist();
+  } finally { $("refresh").textContent = "refresh"; }
+});
+
+$("feed-toggle").addEventListener("click", () => {
+  const entries = [...document.querySelectorAll("#feed .fe")];
+  const collapse = $("feed-toggle").textContent === "collapse all";
+  entries.forEach((e) => e.classList.toggle("closed", collapse));
+  $("feed-toggle").textContent = collapse ? "expand all" : "collapse all";
+});
+
+$("copy-mail").addEventListener("click", async () => {
+  if (!lastEmail) return;
+  const text = `To: ${lastEmail.to_name || ""}\nSubject: ${lastEmail.subject || ""}\n\n${lastEmail.body || ""}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copy-mail").textContent = "copied ✓";
+  } catch { $("copy-mail").textContent = "copy failed"; }
+  setTimeout(() => { $("copy-mail").textContent = "copy"; }, 1600);
+});
+
+/* ---- inside the gate: the enlarged rulebook + this run's verdicts ---- */
+let gateChecks = [];
+
+function gateRules(a) {
+  // a = the latest `allowed` payload from a validate event, or {} before any run
+  const list = (xs) => (xs && xs.length) ? xs.join(", ") : "none fetched";
+  const dollars = (xs) => (xs && xs.length)
+    ? xs.map((v) => "$" + Number(v).toLocaleString()).join(", ") : "none";
+  return [
+    ["Shape", "The output must parse as the exact JSON contract — a missing or extra field is rejected before anything else is looked at."],
+    ["Stage dates", "Every stage-type milestone date must appear verbatim in the opportunity's stage history.", "allowed: " + list(a.stage_dates)],
+    ["External dates", "Every external-type milestone date must match a fetched web finding.", "allowed: " + list(a.web_dates)],
+    ["Meeting dates", "Every meeting-type milestone date must match a logged meeting or the transcript.", "allowed: " + list(a.meeting_dates)],
+    ["Amounts", "Every amount — on the timeline or written inside the email text — must be an amount from the org record.", "allowed: " + dollars(a.amounts)],
+    ["Stage table", "table_data must reproduce the stage history exactly, row for row. The LLM never retypes numbers successfully by accident."],
+    ["Recipient", "The email must address a contact role on this opportunity — never one marked inactive, never one a people-change finding says has left.", "contact roles: " + list(a.contacts)],
+    ["Score", `base must equal the rubric's number${a.score_base != null ? ` (${a.score_base})` : ""}; the adjustment stays within ±${a.adjustment_bound ?? 15} and any nonzero adjustment needs a new signal naming why.`],
+    ["Citations", "sources may only name inputs that were actually fetched this run.", "allowed: " + list(a.sources)],
+    ["Evidence level", "If web and transcript both came back empty, the output must say org_only, flag the email low-context, and keep it short."],
+  ];
+}
+
+function renderGate() {
+  const verdicts = $("gate-verdicts");
+  if (!gateChecks.length) {
+    verdicts.innerHTML = '<p class="gate-note">No run yet — pick a deal and the ' +
+      "gate's verdicts will land here attempt by attempt.</p>";
+  } else {
+    verdicts.innerHTML = "";
+    for (const v of gateChecks) {
+      const el = document.createElement("div");
+      el.className = "gv " + (v.passed ? "pass" : "fail");
+      el.innerHTML = '<div class="head"></div><ul class="plain"></ul>';
+      el.querySelector(".head").textContent =
+        `Attempt ${v.attempt ?? "?"} of ${v.max_attempts ?? 3} — ` +
+        (v.passed ? "PASSED: every value traced back to a fetched source"
+                  : `REJECTED, ${v.errors.length} grounding error(s):`);
+      const ul = el.querySelector("ul");
+      for (const err of v.errors || []) {
+        const li = document.createElement("li");
+        li.textContent = err;
+        ul.appendChild(li);
+      }
+      verdicts.appendChild(el);
+    }
+  }
+  const latest = gateChecks.length ? (gateChecks[gateChecks.length - 1].allowed || {}) : {};
+  const rules = $("gate-rules");
+  rules.innerHTML = "";
+  gateRules(latest).forEach(([name, text, live], i) => {
+    const row = document.createElement("div");
+    row.className = "rule";
+    row.innerHTML = '<span class="no"></span><span><b class="nm"></b> — <span class="tx"></span><span class="live"></span></span>';
+    row.querySelector(".no").textContent = i + 1;
+    row.querySelector(".nm").textContent = name;
+    row.querySelector(".tx").textContent = text;
+    if (live) row.querySelector(".live").textContent = "this run → " + live;
+    rules.appendChild(row);
+  });
+}
+
+function openGate() { renderGate(); $("gate-overlay").classList.remove("hidden"); }
+function closeGate() { $("gate-overlay").classList.add("hidden"); }
+$("gate-close").addEventListener("click", closeGate);
+$("gate-overlay").addEventListener("click", (ev) => {
+  if (ev.target === $("gate-overlay")) closeGate();
+});
+document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape") closeGate();
+});
+
+/* Click (or focus + Enter on) a pipeline node. The gate enlarges into its
+   rulebook; every other node jumps to its latest feed entry. */
+document.querySelectorAll(".node").forEach((g) => {
+  const act = () => {
+    const name = g.id.slice(2);  // "n-fetch_org" -> "fetch_org"
+    if (name === "validate") return openGate();
+    if (name === "publish") {
+      const link = $("replay");
+      if (!link.classList.contains("hidden") && link.href)
+        return window.open(link.href, "_blank", "noopener");
+      // nothing published yet: fall through to the feed entry if one exists
+    }
+    const entries = document.querySelectorAll(`#feed .fe[data-node="${name}"]`);
+    if (!entries.length) return;
+    const entry = entries[entries.length - 1];
+    entry.classList.remove("closed");
+    entry.scrollIntoView({ behavior: "smooth", block: "center" });
+    entry.classList.add("flash");
+    setTimeout(() => entry.classList.remove("flash"), 1400);
+  };
+  g.addEventListener("click", act);
+  g.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); act(); }
+  });
+});
+
+$("banner").title = "click to dismiss";
+$("banner").style.cursor = "pointer";
+$("banner").addEventListener("click", () => { $("banner").style.display = "none"; });
+
+loadHeader();
+loadShortlist().then(restoreLastRun);
+</script>
+</body>
+</html>
